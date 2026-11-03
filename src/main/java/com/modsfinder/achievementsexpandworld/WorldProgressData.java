@@ -72,7 +72,7 @@ public final class WorldProgressData extends SavedData {
     }
 
     public boolean recordAdvancement(String advancementId) {
-        if (!countedAdvancements.add(advancementId)) {
+        if (!WorldExpansionRules.recordUniqueAdvancement(countedAdvancements, advancementId)) {
             return false;
         }
 
@@ -86,7 +86,7 @@ public final class WorldProgressData extends SavedData {
 
     public double getBorderSize() {
         // Vanilla World Border's maximum side length is 59,999,968 blocks.
-        return Math.min(59_999_968.0D, 1.0D + (2.0D * getAdvancementCount()));
+        return WorldExpansionRules.borderSizeForCount(getAdvancementCount());
     }
 
     public double getCenterX() {
