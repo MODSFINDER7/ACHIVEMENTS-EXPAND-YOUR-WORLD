@@ -11,9 +11,20 @@ public final class WorldExpansionRules {
     private WorldExpansionRules() {
     }
 
-    public static double borderSizeForCount(int advancementCount) {
-        int safeCount = Math.max(0, advancementCount);
-        return Math.min(MAX_BORDER_SIZE, 1.0D + (2.0D * safeCount));
+    public static int rewardFor(boolean hidden, String frame) {
+        if (hidden) {
+            return 100;
+        }
+        return switch (frame == null ? "TASK" : frame.toUpperCase(java.util.Locale.ROOT)) {
+            case "GOAL" -> 10;
+            case "CHALLENGE" -> 50;
+            default -> 1;
+        };
+    }
+
+    public static double borderSizeForPoints(int points) {
+        int safePoints = Math.max(0, points);
+        return Math.min(MAX_BORDER_SIZE, 1.0D + (2.0D * safePoints));
     }
 
     public static boolean isCountableAdvancement(String advancementId) {
