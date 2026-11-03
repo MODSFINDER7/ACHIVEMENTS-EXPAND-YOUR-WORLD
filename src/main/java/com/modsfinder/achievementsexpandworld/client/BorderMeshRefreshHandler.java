@@ -56,7 +56,7 @@ public final class BorderMeshRefreshHandler {
         minecraft.levelRenderer.invalidateCompiledGeometry(
                 level,
                 minecraft.options,
-                minecraft.gameRenderer.getMainCamera(),
+                minecraft.gameRenderer.mainCamera(),
                 minecraft.getBlockColors()
         );
     }
