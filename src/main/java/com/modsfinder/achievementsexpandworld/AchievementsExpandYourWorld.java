@@ -50,13 +50,8 @@ public final class AchievementsExpandYourWorld {
         }
 
         String advancementId = event.getAdvancement().id().toString();
-        int namespaceSeparator = advancementId.indexOf(':');
-        String path = namespaceSeparator >= 0
-                ? advancementId.substring(namespaceSeparator + 1)
-                : advancementId;
-
         // Recipe-book unlocks are background mechanics, not challenge advancements.
-        if (path.startsWith("recipes/")) {
+        if (!WorldExpansionRules.isCountableAdvancement(advancementId)) {
             return;
         }
 
