@@ -25,7 +25,7 @@ public final class AchievementsExpandYourWorld {
         MinecraftServer server = event.getServer();
         WorldProgressData progress = WorldProgressData.get(server);
 
-        progress.initializeCenterIfNeeded(server.overworld().getSharedSpawnPos());
+        progress.initializeCenterIfNeeded(server.overworld().getRespawnData().pos());
         applyBorder(server, progress, false);
     }
 
