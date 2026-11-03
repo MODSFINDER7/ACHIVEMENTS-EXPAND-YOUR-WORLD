@@ -25,7 +25,9 @@ public final class WorldProgressData extends SavedData {
                             .forGetter(data -> data.centerZ),
                     Codec.STRING.listOf()
                             .optionalFieldOf("counted_advancements", List.of())
-                            .forGetter(data -> new ArrayList<>(data.countedAdvancements))
+                            .forGetter(data -> new ArrayList<>(data.countedAdvancements)),
+                    Codec.INT.optionalFieldOf("total_points", -1)
+                            .forGetter(data -> data.totalPoints)
             ).apply(instance, WorldProgressData::new)
     );
 
@@ -40,6 +42,7 @@ public final class WorldProgressData extends SavedData {
     private double centerX = 0.5D;
     private double centerZ = 0.5D;
     private final Set<String> countedAdvancements = new HashSet<>();
+    private int totalPoints;
 
     public WorldProgressData() {
     }
@@ -48,12 +51,16 @@ public final class WorldProgressData extends SavedData {
             boolean initialized,
             double centerX,
             double centerZ,
-            List<String> countedAdvancements
+            List<String> countedAdvancements,
+            int totalPoints
     ) {
         this.initialized = initialized;
         this.centerX = centerX;
         this.centerZ = centerZ;
         this.countedAdvancements.addAll(countedAdvancements);
+        // Saves created by older versions have no total_points field. Preserve their
+        // existing progress at the old one-point-per-advancement rate.
+        this.totalPoints = totalPoints < 0 ? this.countedAdvancements.size() : totalPoints;
     }
 
     public static WorldProgressData get(MinecraftServer server) {
@@ -71,11 +78,12 @@ public final class WorldProgressData extends SavedData {
         setDirty();
     }
 
-    public boolean recordAdvancement(String advancementId) {
+    public boolean recordAdvancement(String advancementId, int rewardPoints) {
         if (!WorldExpansionRules.recordUniqueAdvancement(countedAdvancements, advancementId)) {
             return false;
         }
 
+        totalPoints = (int) Math.min(Integer.MAX_VALUE, (long) totalPoints + Math.max(1, rewardPoints));
         setDirty();
         return true;
     }
@@ -84,9 +92,12 @@ public final class WorldProgressData extends SavedData {
         return countedAdvancements.size();
     }
 
+    public int getTotalPoints() {
+        return totalPoints;
+    }
+
     public double getBorderSize() {
-        // Vanilla World Border's maximum side length is 59,999,968 blocks.
-        return WorldExpansionRules.borderSizeForCount(getAdvancementCount());
+        return WorldExpansionRules.borderSizeForPoints(totalPoints);
     }
 
     public double getCenterX() {
