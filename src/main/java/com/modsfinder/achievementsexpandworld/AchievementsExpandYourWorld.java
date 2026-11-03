@@ -39,7 +39,7 @@ public final class AchievementsExpandYourWorld {
             return;
         }
 
-        WorldProgressData progress = WorldProgressData.get(player.serverLevel().getServer());
+        WorldProgressData progress = WorldProgressData.get(((ServerLevel) player.level()).getServer());
         player.sendSystemMessage(createStatusMessage(progress));
     }
 
@@ -60,7 +60,7 @@ public final class AchievementsExpandYourWorld {
             return;
         }
 
-        MinecraftServer server = player.serverLevel().getServer();
+        MinecraftServer server = ((ServerLevel) player.level()).getServer();
         WorldProgressData progress = WorldProgressData.get(server);
 
         // Shared world progression: each advancement ID counts only once for the whole server.
