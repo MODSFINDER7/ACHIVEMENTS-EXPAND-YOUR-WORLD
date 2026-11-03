@@ -55,6 +55,6 @@ GitHub Actions builds and tests every push to `main`, then uploads the JAR as a 
 
 - Mod ID: `achievementsexpandworld`
 - Minecraft: `26.2`
-- NeoForge: `26.2.0.93`
+- NeoForge: `26.2.0.90`
 - Java: `25`
 - License: MIT
