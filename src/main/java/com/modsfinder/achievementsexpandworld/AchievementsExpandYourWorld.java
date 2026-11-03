@@ -1,6 +1,7 @@
 package com.modsfinder.achievementsexpandworld;
 
 import com.mojang.brigadier.Command;
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.commands.Commands;
@@ -72,11 +73,8 @@ public final class AchievementsExpandYourWorld {
 
         applyBorder(server, progress, true);
 
-        Component message = Component.literal(
-                "World expanded to " + formatSize(progress.getBorderSize())
-                        + "! +" + rewardPoints + " points ("
-                        + progress.getTotalPoints() + " total points, "
-                        + progress.getAdvancementCount() + " unique advancements)"
+        Component message = createExpansionMessage(
+                advancementId, hidden, frame, rewardPoints, progress
         );
 
         for (ServerPlayer onlinePlayer : server.getPlayerList().getPlayers()) {
@@ -102,13 +100,52 @@ public final class AchievementsExpandYourWorld {
         );
     }
 
+    private static Component createExpansionMessage(
+            String advancementId,
+            boolean hidden,
+            String frame,
+            int rewardPoints,
+            WorldProgressData progress
+    ) {
+        ChatFormatting rewardColor = hidden ? ChatFormatting.LIGHT_PURPLE
+                : "CHALLENGE".equalsIgnoreCase(frame) ? ChatFormatting.DARK_PURPLE
+                : "GOAL".equalsIgnoreCase(frame) ? ChatFormatting.AQUA
+                : ChatFormatting.GREEN;
+
+        String advancementName = advancementId.substring(advancementId.indexOf(':') + 1)
+                .replace('/', ' ').replace('_', ' ');
+
+        return Component.literal("✦ WORLD EXPANSION ✦")
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+                .append(Component.literal("\nA new achievement has opened the frontier!")
+                        .withStyle(ChatFormatting.WHITE))
+                .append(Component.literal("\n✧ " + advancementName)
+                        .withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal("\n+" + rewardPoints + " EXPANSION POINTS")
+                        .withStyle(rewardColor, ChatFormatting.BOLD))
+                .append(Component.literal("\nUnlocked area: " + formatSize(progress.getBorderSize()))
+                        .withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("  •  Total points: " + progress.getTotalPoints())
+                        .withStyle(ChatFormatting.GRAY));
+    }
+
     private static Component createStatusMessage(WorldProgressData progress) {
-        return Component.literal(
-                "Achievements Expand Your World | Border: "
-                        + formatSize(progress.getBorderSize())
-                        + " | Points: " + progress.getTotalPoints()
-                        + " | Unique advancements: " + progress.getAdvancementCount()
-        );
+        return Component.literal("✦ ACHIEVEMENTS EXPAND YOUR WORLD")
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+                .append(Component.literal("\nYour frontier is currently ")
+                        .withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(formatSize(progress.getBorderSize()))
+                        .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD))
+                .append(Component.literal("\n✧ Expansion points: ")
+                        .withStyle(ChatFormatting.GRAY))
+                .append(Component.literal(String.valueOf(progress.getTotalPoints()))
+                        .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD))
+                .append(Component.literal("\n✧ Unique advancements: ")
+                        .withStyle(ChatFormatting.GRAY))
+                .append(Component.literal(String.valueOf(progress.getAdvancementCount()))
+                        .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD))
+                .append(Component.literal("\nKeep earning advancements. The world is waiting beyond the edge.")
+                        .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
     }
 
     private static String formatSize(double size) {
