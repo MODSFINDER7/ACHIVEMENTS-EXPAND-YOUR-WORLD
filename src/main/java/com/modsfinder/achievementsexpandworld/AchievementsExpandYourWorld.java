@@ -58,8 +58,8 @@ public final class AchievementsExpandYourWorld {
 
         Advancement advancement = event.getAdvancement().value();
         DisplayInfo display = advancement.display().orElse(null);
-        boolean hidden = display != null && display.hidden();
-        String frame = display == null ? "TASK" : display.type().name();
+        boolean hidden = display != null && display.isHidden();
+        String frame = display == null ? "TASK" : display.getType().name();
         int rewardPoints = WorldExpansionRules.rewardFor(hidden, frame);
 
         MinecraftServer server = ((ServerLevel) player.level()).getServer();
