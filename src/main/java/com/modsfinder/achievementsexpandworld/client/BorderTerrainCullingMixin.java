@@ -1,38 +1,66 @@
 package com.modsfinder.achievementsexpandworld.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.chunk.RenderSectionRegion;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.border.WorldBorder;
-import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Keeps render sections and frustum-tested objects outside the active world
- * border out of the client's visible set. The border is read live every time,
- * so newly expanded terrain becomes visible as soon as the server's border
- * update reaches the client.
+ * Filters the section compiler's world snapshot at block-position granularity.
+ * A block is supplied to the mesher only when its complete 1x1 footprint is
+ * inside the live border. Fluids and block entities use the same rule.
  */
-@Mixin(Frustum.class)
+@Mixin(RenderSectionRegion.class)
 public abstract class BorderTerrainCullingMixin {
-    @Inject(method = "isVisible", at = @At("HEAD"), cancellable = true)
-    private void achievementsexpandworld$cullOutsideBorder(
-            AABB bounds,
-            CallbackInfoReturnable<Boolean> callback
-    ) {
+    private static boolean achievementsexpandworld$isInside(BlockPos pos) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
-            return;
+            return true;
         }
 
         WorldBorder border = minecraft.level.getWorldBorder();
-        if (bounds.maxX < border.getMinX()
-                || bounds.minX > border.getMaxX()
-                || bounds.maxZ < border.getMinZ()
-                || bounds.minZ > border.getMaxZ()) {
-            callback.setReturnValue(false);
+        return pos.getX() >= border.getMinX()
+                && pos.getX() + 1.0D <= border.getMaxX()
+                && pos.getZ() >= border.getMinZ()
+                && pos.getZ() + 1.0D <= border.getMaxZ();
+    }
+
+    @Inject(method = "getBlockState", at = @At("HEAD"), cancellable = true)
+    private void achievementsexpandworld$hideOutsideBlocks(
+            BlockPos pos,
+            CallbackInfoReturnable<BlockState> callback
+    ) {
+        if (!achievementsexpandworld$isInside(pos)) {
+            callback.setReturnValue(Blocks.AIR.defaultBlockState());
+        }
+    }
+
+    @Inject(method = "getFluidState", at = @At("HEAD"), cancellable = true)
+    private void achievementsexpandworld$hideOutsideFluids(
+            BlockPos pos,
+            CallbackInfoReturnable<FluidState> callback
+    ) {
+        if (!achievementsexpandworld$isInside(pos)) {
+            callback.setReturnValue(Fluids.EMPTY.defaultFluidState());
+        }
+    }
+
+    @Inject(method = "getBlockEntity", at = @At("HEAD"), cancellable = true)
+    private void achievementsexpandworld$hideOutsideBlockEntities(
+            BlockPos pos,
+            CallbackInfoReturnable<BlockEntity> callback
+    ) {
+        if (!achievementsexpandworld$isInside(pos)) {
+            callback.setReturnValue(null);
         }
     }
 }
