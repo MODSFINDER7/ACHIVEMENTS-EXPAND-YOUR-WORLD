@@ -11,23 +11,34 @@ import org.junit.jupiter.api.Test;
 
 class WorldExpansionRulesTest {
     @Test
-    void borderStartsAtOneAndGrowsByTwoPerUniqueAdvancement() {
-        assertEquals(1.0D, WorldExpansionRules.borderSizeForCount(0));
-        assertEquals(3.0D, WorldExpansionRules.borderSizeForCount(1));
-        assertEquals(5.0D, WorldExpansionRules.borderSizeForCount(2));
-        assertEquals(7.0D, WorldExpansionRules.borderSizeForCount(3));
+    void advancementFramesAwardTheConfiguredPoints() {
+        assertEquals(1, WorldExpansionRules.rewardFor(false, "TASK"));
+        assertEquals(10, WorldExpansionRules.rewardFor(false, "GOAL"));
+        assertEquals(50, WorldExpansionRules.rewardFor(false, "CHALLENGE"));
+        assertEquals(100, WorldExpansionRules.rewardFor(true, "TASK"));
+        assertEquals(100, WorldExpansionRules.rewardFor(true, "GOAL"));
+        assertEquals(100, WorldExpansionRules.rewardFor(true, "CHALLENGE"));
     }
 
     @Test
-    void negativeCountsCannotProduceInvalidBorderSizes() {
-        assertEquals(1.0D, WorldExpansionRules.borderSizeForCount(-5));
+    void borderStartsAtOneAndGrowsByTwoPerPoint() {
+        assertEquals(1.0D, WorldExpansionRules.borderSizeForPoints(0));
+        assertEquals(3.0D, WorldExpansionRules.borderSizeForPoints(1));
+        assertEquals(21.0D, WorldExpansionRules.borderSizeForPoints(10));
+        assertEquals(101.0D, WorldExpansionRules.borderSizeForPoints(50));
+        assertEquals(201.0D, WorldExpansionRules.borderSizeForPoints(100));
+    }
+
+    @Test
+    void negativePointsCannotProduceInvalidBorderSizes() {
+        assertEquals(1.0D, WorldExpansionRules.borderSizeForPoints(-5));
     }
 
     @Test
     void borderSizeNeverExceedsVanillaMaximum() {
         assertEquals(
                 WorldExpansionRules.MAX_BORDER_SIZE,
-                WorldExpansionRules.borderSizeForCount(Integer.MAX_VALUE)
+                WorldExpansionRules.borderSizeForPoints(Integer.MAX_VALUE)
         );
     }
 
