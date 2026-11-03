@@ -1,6 +1,8 @@
 package com.modsfinder.achievementsexpandworld;
 
 import com.mojang.brigadier.Command;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -50,16 +52,21 @@ public final class AchievementsExpandYourWorld {
         }
 
         String advancementId = event.getAdvancement().id().toString();
-        // Recipe-book unlocks are background mechanics, not challenge advancements.
         if (!WorldExpansionRules.isCountableAdvancement(advancementId)) {
             return;
         }
 
+        Advancement advancement = event.getAdvancement().value();
+        DisplayInfo display = advancement.display().orElse(null);
+        boolean hidden = display != null && display.hidden();
+        String frame = display == null ? "TASK" : display.type().name();
+        int rewardPoints = WorldExpansionRules.rewardFor(hidden, frame);
+
         MinecraftServer server = ((ServerLevel) player.level()).getServer();
         WorldProgressData progress = WorldProgressData.get(server);
 
-        // Shared world progression: each advancement ID counts only once for the whole server.
-        if (!progress.recordAdvancement(advancementId)) {
+        // A given advancement ID awards points only once across the entire server.
+        if (!progress.recordAdvancement(advancementId, rewardPoints)) {
             return;
         }
 
@@ -67,7 +74,9 @@ public final class AchievementsExpandYourWorld {
 
         Component message = Component.literal(
                 "World expanded to " + formatSize(progress.getBorderSize())
-                        + "! (" + progress.getAdvancementCount() + " unique advancements)"
+                        + "! +" + rewardPoints + " points ("
+                        + progress.getTotalPoints() + " total points, "
+                        + progress.getAdvancementCount() + " unique advancements)"
         );
 
         for (ServerPlayer onlinePlayer : server.getPlayerList().getPlayers()) {
@@ -97,6 +106,7 @@ public final class AchievementsExpandYourWorld {
         return Component.literal(
                 "Achievements Expand Your World | Border: "
                         + formatSize(progress.getBorderSize())
+                        + " | Points: " + progress.getTotalPoints()
                         + " | Unique advancements: " + progress.getAdvancementCount()
         );
     }
@@ -113,8 +123,6 @@ public final class AchievementsExpandYourWorld {
     ) {
         double targetSize = progress.getBorderSize();
 
-        // Each dimension receives the same saved center and size. Vanilla border packets
-        // synchronize each dimension's border with the players in that dimension.
         for (ServerLevel level : server.getAllLevels()) {
             WorldBorder border = level.getWorldBorder();
             border.setCenter(progress.getCenterX(), progress.getCenterZ());
