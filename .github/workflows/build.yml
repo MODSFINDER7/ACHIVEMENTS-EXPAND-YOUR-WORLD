@@ -1,12 +1,13 @@
-name: Build NeoForge Mod
+name: Build and Release NeoForge Mod
 
 on:
   push:
     branches: [main]
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -25,11 +26,11 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
 
-      - name: Build mod
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Compile and package
-        run: ./gradlew --no-daemon build
+      - name: Run tests and build mod
+        run: ./gradlew --no-daemon clean build
 
       - name: Upload mod JAR
         uses: actions/upload-artifact@v4
@@ -37,3 +38,11 @@ jobs:
           name: achievements-expand-your-world-26.2
           path: build/libs/*.jar
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: build/libs/*.jar
