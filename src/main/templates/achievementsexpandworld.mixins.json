@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.modsfinder.achievementsexpandworld",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "client.BorderTerrainCullingMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
